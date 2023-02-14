@@ -1,10 +1,12 @@
 # Agents should each have an action space
 # Econs - completely rational consumer'
-
+import uuid
 
 class Agent:
 
   def __init__(self, config):
+    self.id = uuid.uuid1()
+    print(self.id)
     self.net_worth = 0
     self.risk_appetite = None
     self.credit_score = None
