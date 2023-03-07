@@ -20,3 +20,13 @@ class Firm:
 
   def service_fees():
     pass
+
+class DecentralizedFirm:
+
+  def __init__(self, service_fees):
+    # Maybe some people don't want to be depositors etc.
+    # self.active_agents = all_agents
+    self.id = uuid.uuid1()
+
+  def service_fees():
+    pass

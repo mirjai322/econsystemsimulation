@@ -9,7 +9,7 @@ import csv
 
 class Economy:
 
-  def __init__(self, config, is_centralized):
+  def __init__(self, config):
     self.config = config
     self.num_agents = config["agents"]["num_agents"]
     self.num_firms = config["firms"]["num_firms"]
@@ -17,7 +17,6 @@ class Economy:
     self.state = []
     self.summary = []
     self.ledger = Ledger()
-    self.is_centralized = is_centralized
 
   def configure_agents(self):
     self.agents = []
@@ -46,51 +45,6 @@ class Economy:
       r.income = rand_num * 10000000
       self.regulators.append(r)
       #self.regulators.append(Regulator(self.config['regulators']))
-  def d_interact_agentSeeking_with_firm_with_agentLending():
-    pass
-    #agentSeeking = random.choice(self.agents)
-    #firm = random.choice(self.firms)
-    """
-    agentLending = selected by firm based on loan amount
-    """
-    #upperBound = 0.5 * agent.net_worth
-    #if upperBound <= 100:
-      #return
-    #loan_amount = np.random.randint(100, upperBound)
-    #agent requests a certain loan amount
-    #firm looks through database and picks another agent that handles that amount
-  def d_interact_agentLending_with_firm():
-    pass
-  def d_interact_agentSeeking_with_agentLending():
-    #normal loan process
-    #specify valid loan amount
-
-    selected_firm.money = selected_firm.money - loan_amount
-    agent.net_worth = agent.net_worth + loan_amount
-    #print ("loan initiated")
-    self.ledger.initiate_loan(agent, selected_firm, loan_amount)
-
-    # scan ledger and randomly pick one loan to default, one loan if any to pay_off, and random interest payment
-    # pay interest on loan
-    if len(self.ledger.entries) > 5:
-      entry = random.choice(self.ledger.entries)
-      amount = entry.amount
-      interest_amount = 0.1 * amount
-      entry.firm.money += interest_amount
-      entry.agent.net_worth -= interest_amount
-      #print ("loan interest paid")
-      # pay off a random loan
-      entry = random.choice(self.ledger.entries)
-      loan_amount = entry.amount
-      entry.firm.money += amount
-      entry.agent.net_worth -= amount
-      self.ledger.settle_loan(entry.agent.id, entry.firm.id)
-  def d_interact_regulator_with_agentLending():
-    pass
-  def d_interact_regulator_with_firm():
-    pass
-  def d_interact_agents_with_agents():
-    pass
 
   def interact_agents_with_agents(self):
     """
@@ -313,12 +267,7 @@ class Economy:
       list.append(data)
 
   def print_state(self, run_number):
-    if self.is_centralized:
-      prefix = "centralized"
-    else:
-      prefix = "decentralized"
-    filename = prefix + "_output/detail_data_iteration_" + str(
-      run_number) + ".csv"
+    filename = "output/detail_data_iteration_" + str(run_number) + ".csv"
     list = self.state
 
     #write the header of the csv file
@@ -384,7 +333,7 @@ class Economy:
     stddev = np.std(money_array)
     summary_data["stddev"] = stddev
 
-    self.summary.append(summary_data) 
+    self.summary.append(summary_data)
 
     print("Firm Stats:")
     print("Min: " + self.formatNumber(min))
