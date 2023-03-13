@@ -3,6 +3,8 @@ from firms import Firm
 from regulators import Regulator
 from numpy import random
 from environment import Economy
+import shutil
+import os
 import csv
 '''
 config is used to configure simulation. You can control how many agents, firms , regulators to create
@@ -24,15 +26,15 @@ config = {
     "num_regulators": 1,  # Leave as 1, there is just 1 gov.
     "reg_action_space": ['fee_rate', 'tax_rate'],
     "tax_rate_agents": 0.10,
-    "tax_rate_firms": 0.20,
+    "tax_rate_firms": 0.10,
     "reg_state_space": ['wealth_equality', 'money'],
     "reward_functions": ['money_firms_agents', 'equality_agents']
     # Equality could be measured by the standard deviation of agents (smaller is better). Could make this a negative number
   },
   "general": {
     "save_state_iterations": 1,
-    "simulation_run_count": 100,
-    "iterations_in_each_simulation_run": 1000
+    "simulation_run_count": 2,
+    "iterations_in_each_simulation_run": 10
   }
 }
 
@@ -57,11 +59,24 @@ def do_centralized_world_interactions(environment, i):
 
 
 def do_decentralized_world_interactions(environment, i):
-  # Agents interact with each other
+  # Agents decide interest rate and give a cut to Crypto firms 
+  environment.decentralized_lending()
+  # Government regulate firms (maybe penalize)
+  if i % 52 == 0:
+    environment.regulators_regulate_firms()
+
+  # Government regulate individuals
+  if i % 52 == 0:
+    environment.regulators_regulate_agents()
+
+  # Agent-agent interaction (betting)
+  environment.interact_agents_with_agents()
+  
+
   #environment.d_interact_agentSeeking_with_firm_with_agentLending()
   #environment.d_interact_regulator_with_agentLending()
   #environment.d_interact_regulator_with_firm()
-  #environment.d_interact_agents_with_agents() 
+  #environment.d_interact_agents_with_agents()
   pass
 
 
@@ -86,8 +101,15 @@ def simulate(config, simulation_run_number, is_centralized):
   environment.print_state(simulation_run_number)
   return environment.summary
 
+def cleanOutputFolder(mode):
+  folder_path = mode+'_output'
+  shutil.rmtree(folder_path)
+  os.mkdir(folder_path)
+
+
 
 def run(mode):
+  cleanOutputFolder(mode)
   if mode == "centralized":
     is_centralized = True
   else:
@@ -119,4 +141,4 @@ def run(mode):
 
 #start the similation
 #run("centralized")
-run("centralized")
+run("decentralized")

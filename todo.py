@@ -35,6 +35,24 @@ Tasks Completed [Feb 27]
   - Every agent can be a provider but they have "reputation" for the prices they set, and based on the fees they set they can either get more or less loan seekers
     - Reputation can be an attribute based on 
 
+Tasks Completed [March 7]
+1. In Decenralized world, we will assume that all the firms are crypto_lending_firms. We do not have any hybrid world, where some firms are regular firms and some cruypto. IT is all regular for centralized and All crypto in decentralized world. 
+2. Wrote decentralized lending method logic 
+3. Researched on regulations in centralized world
+4. Researched on blockchain network, transaction fees, etc
+-->Need guidance in terms of how to incorporate the regulations in decentralized [and centralized] world...  How to introduce regulations and make them different between de/centralized
+-->In decentralized world, will there be any big financial firms (such as in a hybrid world)? Will they be regulated or unregulated? Follow same regulations as DeFi "firms"?
+
+Tasks Completed [March 13]
+1. Incorporated Firms into transactions in both centralized & decentralized
+2. Wrote antitrust regulation logic (which can be commented out when regulatory structure is not compatible)
+3. Implemented ledger system in decentralized_lending() method, so that loans are paid off.
+4. Planned which numbers/exact setups to use for each of 6 regulationSetup-economicSystem pairing
+5. Fixed probability distribution in weighted random logic to handle edge cases
+6. Debugged to make sure data is being added to CSV file, which is added to output folder
+7. Experimented with Matplotlib, pandas to make preliminary plots
+
+
 NEXT STEPS:
 - add "loan_boundary" attribute to each agent
 - for each loan:
@@ -198,8 +216,21 @@ Next Steps:
   + The simulations of this can wait until next week
 
 '''
-
 """
 Questions: 
 - What to do about change_regulations() function? Because varying regulatory conditions is a part of the paper
+"""
+"""
+Sam Notes: 2022-03-07
+- Make sure that firms are involved in transactions in both settings
+- Cover any edge cases for decentralized lending and document.
+- Generate data under different regulatory settings for each economic framework
+- (optional) Pick a single regulatory setting and slightly alter the structure of the economic frameworks (both centralized and decentralized)
+
+Experimental Findings and Analysis:
+- Wealth equality and distribution for individual agents (at the end)
+- Firm size and structure
+- "Are we better off" metrics for agents over time
+- "Matthew effect" visualization. (quantiles and wealth change)
+
 """

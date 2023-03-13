@@ -11,15 +11,16 @@
 ###* “waiting time” when liquidating
 import uuid
 
+
 class Firm:
 
-  def __init__(self, service_fees):
+  def __init__(self, config):
     self.money = None
     self.id = uuid.uuid1()
 
-
   def service_fees():
     pass
+
 
 class DecentralizedFirm:
 

@@ -23,10 +23,10 @@ class Economy:
     self.agents = []
     for i in range(self.config['agents']['num_agents']):
       a = Agent(self.config['agents'])
-      #choose two random number between 1 and 100 and then multiply them by 100 to assign random networth
+      #choose two random number between 1 and 100 and then multiply them by 10000 to assign random networth
       rand_num = random.randint(1, 101)
       rand_num2 = random.randint(1, 101)
-      a.net_worth = rand_num * rand_num2 * 100
+      a.net_worth = rand_num * rand_num2 * 10000
       self.agents.append(a)
 
   def configure_firms(self):
@@ -46,51 +46,69 @@ class Economy:
       r.income = rand_num * 10000000
       self.regulators.append(r)
       #self.regulators.append(Regulator(self.config['regulators']))
-  def d_interact_agentSeeking_with_firm_with_agentLending():
-    pass
-    #agentSeeking = random.choice(self.agents)
-    #firm = random.choice(self.firms)
-    """
-    agentLending = selected by firm based on loan amount
-    """
-    #upperBound = 0.5 * agent.net_worth
-    #if upperBound <= 100:
-      #return
-    #loan_amount = np.random.randint(100, upperBound)
-    #agent requests a certain loan amount
-    #firm looks through database and picks another agent that handles that amount
-  def d_interact_agentLending_with_firm():
-    pass
-  def d_interact_agentSeeking_with_agentLending():
-    #normal loan process
-    #specify valid loan amount
 
-    selected_firm.money = selected_firm.money - loan_amount
-    agent.net_worth = agent.net_worth + loan_amount
-    #print ("loan initiated")
-    self.ledger.initiate_loan(agent, selected_firm, loan_amount)
+  # ALL decentralized interactions below
+  def decentralized_lending(self):
+    '''
+    Pick a random agent to be the Seeking Agent
+    Pick a random agent to be the Lending Agent
+    Pick a random interest rate between 1 -> 20% of the Loan Amount
+    Pick a random Firm to be the crypto_lending_firm
+    Pick a random transaction fee that is between 1 -> 2% of the Loan Amount
+    Loan amount gets added to Seeking Agent net worth
+    Transaction Fee amount gets subtracted from Seeking Agent's net worth AND added to crypto_lending_firm money
+    Interest Rate gets subtracted from Seeking Agent's net worth AND added to Lending Agent net worth
+     '''
 
-    # scan ledger and randomly pick one loan to default, one loan if any to pay_off, and random interest payment
+    seeking_agent = random.choice(self.agents)
+    lending_agent = None
+    exclude = seeking_agent
+    #make sure seeking_agent != lending_agent
+    while lending_agent == None or lending_agent == exclude:
+      lending_agent = random.choice(self.agents)
+    upperBound = np.minimum(0.4 * seeking_agent.net_worth,
+                            0.2 * lending_agent.net_worth)
+    if upperBound <= 100:
+      return
+    #setting loan amount
+    loan_amount = np.random.randint(100, upperBound)
+
+    #choosing firm that is like blockchain network "provider" - ex/ Ethereum chain
+    crypto_lending_firm = random.choice(self.firms)
+    #setting transaction fee
+    min_transaction_fee = 0.01 * loan_amount
+    max_transaction_fee = 0.02 * loan_amount
+    transaction_fee = np.random.uniform(min_transaction_fee,
+                                        max_transaction_fee)
+    crypto_lending_firm.money += transaction_fee
+    seeking_agent.net_worth -= transaction_fee
+    #give agent loan money
+    seeking_agent.net_worth += loan_amount
+    #every iteration, you keep paying the percentage of the loan (interest_rate * loan_amount) back to the lending agent, until the entire loan is paid off
+    #seeking_agent.net_worth -= interest_rate
+    #lending_agent.net_worth += interest_rate
+    self.ledger.initiate_loan(seeking_agent, crypto_lending_firm, loan_amount,
+                              lending_agent)
+
+    # scan ledger and randomly pick one loan if any to pay_off, and make interest payment
     # pay interest on loan
     if len(self.ledger.entries) > 5:
       entry = random.choice(self.ledger.entries)
       amount = entry.amount
-      interest_amount = 0.1 * amount
-      entry.firm.money += interest_amount
-      entry.agent.net_worth -= interest_amount
-      #print ("loan interest paid")
+      #setting interest rate
+      min_interest = 0.01 * amount
+      max_interest = 0.2 * amount
+      interest = np.random.uniform(min_interest, max_interest)
+      entry.lending_agent.net_worth += interest
+      entry.agent.net_worth -= interest
+      print("loan interest paid" + str(interest))
       # pay off a random loan
       entry = random.choice(self.ledger.entries)
       loan_amount = entry.amount
       entry.firm.money += amount
       entry.agent.net_worth -= amount
-      self.ledger.settle_loan(entry.agent.id, entry.firm.id)
-  def d_interact_regulator_with_agentLending():
-    pass
-  def d_interact_regulator_with_firm():
-    pass
-  def d_interact_agents_with_agents():
-    pass
+      self.ledger.settle_loan_between_agent_and_agent(entry.agent.id,
+                                                      entry.lending_agent.id)
 
   def interact_agents_with_agents(self):
     """
@@ -123,6 +141,14 @@ class Economy:
 
     agent_win.net_worth = agent_win.net_worth + bet_amount
     agent_lose.net_worth = agent_lose.net_worth - bet_amount
+    #transaction fee logic to incorporate firms in transactions
+    transaction_fee_percentage = np.random.uniform(0.15, 0.20)
+    transaction_fee = bet_amount * transaction_fee_percentage
+    #choose random firm, that is the firm that facilitated the transaction
+    handler = random.choice(self.firms)
+    handler.money += transaction_fee
+    agent_win.net_worth -= transaction_fee / 2
+    agent_lose.net_worth -= transaction_fee / 2
 
   def interact_firms_with_agents(self):
     """
@@ -143,7 +169,15 @@ class Economy:
 
     # Weighted random selection
     firm_weights_raw = np.array([firm.money for firm in self.firms])
+    if firm_weights_raw.sum() <= 0 or np.any(firm_weights_raw < 0):
+      return  # Return or handle the case where the sum of firm weights is zero or negative or there are negative weights.
+
     firm_weights = firm_weights_raw / firm_weights_raw.sum()
+    if not np.isclose(firm_weights.sum(), 1):
+      # Handle the case where the probabilities do not sum up to 1.
+      # One option is to renormalize the probabilities:
+      firm_weights /= firm_weights.sum()
+
     agent_firm_choice_index = np.random.choice(range(firm_weights.shape[0]),
                                                p=firm_weights)
     selected_firm = self.firms[agent_firm_choice_index]
@@ -154,10 +188,10 @@ class Economy:
     #return
     agent = random.choice(self.agents)
     #specify valid loan amount
-    upperBound = np.minimum(0.5 * agent.net_worth, 0.1 * selected_firm.money)
+    upperBound = np.minimum(0.75 * agent.net_worth, 0.3 * selected_firm.money)
     if upperBound <= 100:
       return
-    loan_amount = np.random.randint(100, upperBound)
+    loan_amount = np.random.randint(90, np.maximum(upperBound, 100))
 
     selected_firm.money = selected_firm.money - loan_amount
     agent.net_worth = agent.net_worth + loan_amount
@@ -169,7 +203,7 @@ class Economy:
     if len(self.ledger.entries) > 5:
       entry = random.choice(self.ledger.entries)
       amount = entry.amount
-      interest_amount = 0.1 * amount
+      interest_amount = 0.3 * amount
       entry.firm.money += interest_amount
       entry.agent.net_worth -= interest_amount
       #print ("loan interest paid")
@@ -178,7 +212,8 @@ class Economy:
       loan_amount = entry.amount
       entry.firm.money += amount
       entry.agent.net_worth -= amount
-      self.ledger.settle_loan(entry.agent.id, entry.firm.id)
+      self.ledger.settle_loan_between_agent_and_firm(entry.agent.id,
+                                                     entry.firm.id)
 
       # default on a random loan?? firm loses money, what should happen to agent? reduce credit rating? @TODO
 
@@ -197,6 +232,29 @@ class Economy:
       self.firms.remove(firm1)
       firm2 = random.choice(self.firms)
       money2 = firm2.money
+      #antitrust regulations -- can be commented out when not applicable
+      '''
+      Create variable called "firm_sum"
+      Iterate through all the firms
+      Add the net worth of each firm to the firm_sum
+      Create variable called comparison
+        Comparison is what percentage of the aggregate shall the potential merger not exceed
+      If the potential merger combined net worth exceeds comparison, merger is not carried out (strict regulation).
+      But for laissez faire this entire block of code will not matter.
+      '''
+      '''
+      firm_sum = 0
+      for firm in self.firms:
+        firm_sum += firm.money
+      comparison = 0.50 * firm_sum
+      if (money1 + money2) >= comparison:
+        #choose 2 different firms
+        firm1 = random.choice(self.firms)
+        money1 = firm1.money
+        self.firms.remove(firm1)
+        firm2 = random.choice(self.firms)
+        money2 = firm2.money
+      '''
       newFirm = Firm(self.config['firms'])
       newFirm.money = money1 + money2
       self.firms.append(newFirm)
@@ -223,16 +281,17 @@ class Economy:
 
      antitrust: if there is a new firm formed that is the composition, then split that firm back into original
      """
-    for item in self.firms:
-      money_array = np.array([firm.money for firm in self.firms])
-      mean = np.mean(money_array)
-      taxRate = 0.10
-      if item.money >= mean:
-        taxRate = 0.15
-      tax_amount = taxRate * item.money
-      reg = random.choice(self.regulators)
-      reg.income += tax_amount
-      item.money -= tax_amount
+    #for item in self.firms:
+    #money_array = np.array([firm.money for firm in self.firms])
+    #mean = np.mean(money_array)
+    #taxRate = 0.10
+    #if item.money >= mean:
+    #taxRate = 0.15
+    #tax_amount = taxRate * item.money
+    #reg = random.choice(self.regulators)
+    #reg.income += tax_amount
+    #item.money -= tax_amount
+    pass
 
   def regulators_regulate_agents(self):
     """
@@ -244,17 +303,18 @@ class Economy:
       1. if agent's income is less than mean, tax rate = 15%
       2. if agent's income is greater than mean, tax rate = 25%
     """
-    for item in self.agents:
-      #test tax bracket
-      money_array = np.array([agent.net_worth for agent in self.agents])
-      mean = np.mean(money_array)
-      taxRate = 0.15
-      if item.net_worth >= mean:
-        taxRate = 0.25
-      tax_amount = taxRate * item.net_worth
-      item.net_worth = item.net_worth - tax_amount
-      reg = random.choice(self.regulators)
-      reg.income += tax_amount
+    #for item in self.agents:
+    #test tax bracket
+    #money_array = np.array([agent.net_worth for agent in self.agents])
+    #mean = np.mean(money_array)
+    #taxRate = 0.15
+    #if item.net_worth >= mean:
+    #taxRate = 0.25
+    # tax_amount = taxRate * item.net_worth
+    #item.net_worth = item.net_worth - tax_amount
+    #reg = random.choice(self.regulators)
+    #reg.income += tax_amount
+    pass
 
   def change_regulatpass(self):
     pass
@@ -384,7 +444,7 @@ class Economy:
     stddev = np.std(money_array)
     summary_data["stddev"] = stddev
 
-    self.summary.append(summary_data) 
+    self.summary.append(summary_data)
 
     print("Firm Stats:")
     print("Min: " + self.formatNumber(min))
