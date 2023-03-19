@@ -71,13 +71,13 @@ class Economy:
     if upperBound <= 100:
       return
     #setting loan amount
-    loan_amount = np.random.randint(100, upperBound)
+    loan_amount = np.random.randint(90, upperBound)
 
     #choosing firm that is like blockchain network "provider" - ex/ Ethereum chain
     crypto_lending_firm = random.choice(self.firms)
     #setting transaction fee
-    min_transaction_fee = 0.01 * loan_amount
-    max_transaction_fee = 0.02 * loan_amount
+    min_transaction_fee = 0.15 * loan_amount
+    max_transaction_fee = 0.20 * loan_amount
     transaction_fee = np.random.uniform(min_transaction_fee,
                                         max_transaction_fee)
     crypto_lending_firm.money += transaction_fee
@@ -96,12 +96,12 @@ class Economy:
       entry = random.choice(self.ledger.entries)
       amount = entry.amount
       #setting interest rate
-      min_interest = 0.01 * amount
-      max_interest = 0.2 * amount
+      min_interest = 0.22 * amount
+      max_interest = 0.28 * amount
       interest = np.random.uniform(min_interest, max_interest)
       entry.lending_agent.net_worth += interest
       entry.agent.net_worth -= interest
-      print("loan interest paid" + str(interest))
+      #print("loan interest paid" + str(interest))
       # pay off a random loan
       entry = random.choice(self.ledger.entries)
       loan_amount = entry.amount
@@ -188,7 +188,7 @@ class Economy:
     #return
     agent = random.choice(self.agents)
     #specify valid loan amount
-    upperBound = np.minimum(0.75 * agent.net_worth, 0.3 * selected_firm.money)
+    upperBound = np.minimum(0.70 * agent.net_worth, 0.3 * selected_firm.money)
     if upperBound <= 100:
       return
     loan_amount = np.random.randint(90, np.maximum(upperBound, 100))
@@ -203,7 +203,7 @@ class Economy:
     if len(self.ledger.entries) > 5:
       entry = random.choice(self.ledger.entries)
       amount = entry.amount
-      interest_amount = 0.3 * amount
+      interest_amount = 0.10 * amount
       entry.firm.money += interest_amount
       entry.agent.net_worth -= interest_amount
       #print ("loan interest paid")
@@ -242,11 +242,11 @@ class Economy:
       If the potential merger combined net worth exceeds comparison, merger is not carried out (strict regulation).
       But for laissez faire this entire block of code will not matter.
       '''
-      '''
+      
       firm_sum = 0
       for firm in self.firms:
         firm_sum += firm.money
-      comparison = 0.50 * firm_sum
+      comparison = 0.65 * firm_sum
       if (money1 + money2) >= comparison:
         #choose 2 different firms
         firm1 = random.choice(self.firms)
@@ -254,7 +254,7 @@ class Economy:
         self.firms.remove(firm1)
         firm2 = random.choice(self.firms)
         money2 = firm2.money
-      '''
+      
       newFirm = Firm(self.config['firms'])
       newFirm.money = money1 + money2
       self.firms.append(newFirm)
@@ -281,17 +281,16 @@ class Economy:
 
      antitrust: if there is a new firm formed that is the composition, then split that firm back into original
      """
-    #for item in self.firms:
-    #money_array = np.array([firm.money for firm in self.firms])
-    #mean = np.mean(money_array)
-    #taxRate = 0.10
-    #if item.money >= mean:
-    #taxRate = 0.15
-    #tax_amount = taxRate * item.money
-    #reg = random.choice(self.regulators)
-    #reg.income += tax_amount
-    #item.money -= tax_amount
-    pass
+    for item in self.firms:
+      money_array = np.array([firm.money for firm in self.firms])
+      mean = np.mean(money_array)
+      taxRate = 0.0
+      if item.money >= mean:
+        taxRate = 0.0
+      tax_amount = taxRate * item.money
+      reg = random.choice(self.regulators)
+      reg.income += tax_amount
+      item.money -= tax_amount
 
   def regulators_regulate_agents(self):
     """
@@ -303,18 +302,18 @@ class Economy:
       1. if agent's income is less than mean, tax rate = 15%
       2. if agent's income is greater than mean, tax rate = 25%
     """
-    #for item in self.agents:
+    for item in self.agents:
     #test tax bracket
-    #money_array = np.array([agent.net_worth for agent in self.agents])
-    #mean = np.mean(money_array)
-    #taxRate = 0.15
-    #if item.net_worth >= mean:
-    #taxRate = 0.25
-    # tax_amount = taxRate * item.net_worth
-    #item.net_worth = item.net_worth - tax_amount
-    #reg = random.choice(self.regulators)
-    #reg.income += tax_amount
-    pass
+      money_array = np.array([agent.net_worth for agent in self.agents])
+      mean = np.mean(money_array)
+      taxRate = 0.0
+      if item.net_worth >= mean:
+        taxRate = 0.0
+      tax_amount = taxRate * item.net_worth
+      item.net_worth = item.net_worth - tax_amount
+      reg = random.choice(self.regulators)
+      reg.income += tax_amount
+
 
   def change_regulatpass(self):
     pass
@@ -377,8 +376,8 @@ class Economy:
       prefix = "centralized"
     else:
       prefix = "decentralized"
-    filename = prefix + "_output/detail_data_iteration_" + str(
-      run_number) + ".csv"
+    #filename = prefix + "runoff/detail_data_iteration_" + str(run_number) + ".csv"
+    filename = "runoff/detail_data_iteration" + str(run_number) + ".csv"
     list = self.state
 
     #write the header of the csv file

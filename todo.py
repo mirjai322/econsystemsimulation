@@ -234,3 +234,18 @@ Experimental Findings and Analysis:
 - "Matthew effect" visualization. (quantiles and wealth change)
 
 """
+
+"""
+3 plots
+- no regulation
+- midle
+- high reg
+3 subplots
+- agent wealth equality vs time
+- tendency of monopoly
+- Group everyone into groups baesd on initial wealth and see how thy each change
+  - as a percentage or values
+- wealth mobility (how many people "switched" -- stayed same -- etc.. )
+
+Matplotlib subplots
+"""

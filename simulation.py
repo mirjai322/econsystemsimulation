@@ -33,8 +33,8 @@ config = {
   },
   "general": {
     "save_state_iterations": 1,
-    "simulation_run_count": 2,
-    "iterations_in_each_simulation_run": 10
+    "simulation_run_count": 60,
+    "iterations_in_each_simulation_run": 1000
   }
 }
 
@@ -102,7 +102,7 @@ def simulate(config, simulation_run_number, is_centralized):
   return environment.summary
 
 def cleanOutputFolder(mode):
-  folder_path = mode+'_output'
+  folder_path = "runoff"
   shutil.rmtree(folder_path)
   os.mkdir(folder_path)
 
