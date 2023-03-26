@@ -18,6 +18,15 @@ class Economy:
     self.summary = []
     self.ledger = Ledger()
     self.is_centralized = is_centralized
+    print("configuration based on regulation setup::::")
+    print(self.get_min_tax_rate_agents())
+    print(self.get_max_tax_rate_agents())
+    print(self.get_min_tax_rate_firms())
+    print(self.get_max_tax_rate_firms())
+    print(self.get_min_interest_rate())
+    print(self.get_max_interest_rate())
+    print(self.get_min_tranaction_fee())
+    print(self.get_max_tranaction_fee())
 
   def configure_agents(self):
     self.agents = []
@@ -76,8 +85,8 @@ class Economy:
     #choosing firm that is like blockchain network "provider" - ex/ Ethereum chain
     crypto_lending_firm = random.choice(self.firms)
     #setting transaction fee
-    min_transaction_fee = 0.15 * loan_amount
-    max_transaction_fee = 0.20 * loan_amount
+    min_transaction_fee = self.get_min_tranaction_fee() * loan_amount
+    max_transaction_fee = self.get_max_tranaction_fee() * loan_amount
     transaction_fee = np.random.uniform(min_transaction_fee,
                                         max_transaction_fee)
     crypto_lending_firm.money += transaction_fee
@@ -96,8 +105,8 @@ class Economy:
       entry = random.choice(self.ledger.entries)
       amount = entry.amount
       #setting interest rate
-      min_interest = 0.22 * amount
-      max_interest = 0.28 * amount
+      min_interest = self.get_min_interest_rate() * amount
+      max_interest = self.get_max_interest_rate() * amount
       interest = np.random.uniform(min_interest, max_interest)
       entry.lending_agent.net_worth += interest
       entry.agent.net_worth -= interest
@@ -142,7 +151,8 @@ class Economy:
     agent_win.net_worth = agent_win.net_worth + bet_amount
     agent_lose.net_worth = agent_lose.net_worth - bet_amount
     #transaction fee logic to incorporate firms in transactions
-    transaction_fee_percentage = np.random.uniform(0.15, 0.20)
+    transaction_fee_percentage = np.random.uniform(
+      self.get_min_tranaction_fee(), self.get_max_tranaction_fee())
     transaction_fee = bet_amount * transaction_fee_percentage
     #choose random firm, that is the firm that facilitated the transaction
     handler = random.choice(self.firms)
@@ -242,11 +252,11 @@ class Economy:
       If the potential merger combined net worth exceeds comparison, merger is not carried out (strict regulation).
       But for laissez faire this entire block of code will not matter.
       '''
-      
+
       firm_sum = 0
       for firm in self.firms:
         firm_sum += firm.money
-      comparison = 0.65 * firm_sum
+      comparison = self.get_merger_threshold() * firm_sum
       if (money1 + money2) >= comparison:
         #choose 2 different firms
         firm1 = random.choice(self.firms)
@@ -254,7 +264,7 @@ class Economy:
         self.firms.remove(firm1)
         firm2 = random.choice(self.firms)
         money2 = firm2.money
-      
+
       newFirm = Firm(self.config['firms'])
       newFirm.money = money1 + money2
       self.firms.append(newFirm)
@@ -284,9 +294,9 @@ class Economy:
     for item in self.firms:
       money_array = np.array([firm.money for firm in self.firms])
       mean = np.mean(money_array)
-      taxRate = 0.0
+      taxRate = self.get_min_tax_rate_firms()
       if item.money >= mean:
-        taxRate = 0.0
+        taxRate = self.get_min_tax_rate_firms()
       tax_amount = taxRate * item.money
       reg = random.choice(self.regulators)
       reg.income += tax_amount
@@ -303,17 +313,16 @@ class Economy:
       2. if agent's income is greater than mean, tax rate = 25%
     """
     for item in self.agents:
-    #test tax bracket
+      #test tax bracket
       money_array = np.array([agent.net_worth for agent in self.agents])
       mean = np.mean(money_array)
-      taxRate = 0.0
+      taxRate = self.get_min_tax_rate_agents()
       if item.net_worth >= mean:
-        taxRate = 0.0
+        taxRate = self.get_max_tax_rate_agents()
       tax_amount = taxRate * item.net_worth
       item.net_worth = item.net_worth - tax_amount
       reg = random.choice(self.regulators)
       reg.income += tax_amount
-
 
   def change_regulatpass(self):
     pass
@@ -372,12 +381,11 @@ class Economy:
       list.append(data)
 
   def print_state(self, run_number):
-    if self.is_centralized:
-      prefix = "centralized"
-    else:
-      prefix = "decentralized"
-    #filename = prefix + "runoff/detail_data_iteration_" + str(run_number) + ".csv"
-    filename = "runoff/detail_data_iteration" + str(run_number) + ".csv"
+    mode = self.config["general"]["mode"]
+    regulation = self.config["general"]["regulation_mode"]
+    folder_path = mode + "_" + regulation + "_output"
+    filename = folder_path + "/detail_data_iteration" + str(
+      run_number) + ".csv"
     list = self.state
 
     #write the header of the csv file
@@ -460,3 +468,48 @@ class Economy:
 
   def formatNumber(self, num):
     return str("{:.2f}".format(num))
+
+  def get_merger_threshold(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "merger_threshold_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_min_tranaction_fee(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "min_transaction_fee_" + regulation_mode
+    return self.config["firms"][key]
+
+  def get_max_tranaction_fee(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "max_transaction_fee_" + regulation_mode
+    return self.config["firms"][key]
+
+  def get_min_tax_rate_agents(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "min_tax_rate_agents_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_max_tax_rate_agents(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "max_tax_rate_agents_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_min_tax_rate_firms(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "min_tax_rate_firms_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_max_tax_rate_firms(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "max_tax_rate_firms_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_min_interest_rate(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "min_interest_rate_" + regulation_mode
+    return self.config["regulators"][key]
+
+  def get_max_interest_rate(self):
+    regulation_mode = self.config["general"]["regulation_mode"]
+    key = "max_interest_rate_" + regulation_mode
+    return self.config["regulators"][key]

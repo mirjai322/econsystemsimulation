@@ -52,6 +52,13 @@ Tasks Completed [March 13]
 6. Debugged to make sure data is being added to CSV file, which is added to output folder
 7. Experimented with Matplotlib, pandas to make preliminary plots
 
+Tasks Completed March 20 
+1. Added config for different modes of regulation and removed hard coding from Environment
+2. Now I can run simulation for al 6 modes with a single click. It takes a lot of time on repli.it. Working fast on my desktop. 
+3. Created chart Figure 1: How different agent networth changes over 1000 iterations of a particular run 
+4. Created chart Figure 2:  stddeviation of agent networth across all runs 
+5. (work in progress) trying to create poor, middle class, rich, super rich category and see how many agents belong to each category after every 100 time steps in a particular run. 
+
 
 NEXT STEPS:
 - add "loan_boundary" attribute to each agent
@@ -246,6 +253,33 @@ Experimental Findings and Analysis:
 - Group everyone into groups baesd on initial wealth and see how thy each change
   - as a percentage or values
 - wealth mobility (how many people "switched" -- stayed same -- etc.. )
+- variation over time
 
 Matplotlib subplots
 """
+
+
+
+"""
+CENTRALIZED/DECENTRALIZED
+Plot #1: Wealth over time, every agent gets its own line
+x axis = iteration/timestep
+y axis = wealth
+hue = agent ID
+Plot #2: Variance over time
+x axis = iteration/timestep
+y axis = wealth
+hue = agent (entity type)
+Plot #2: Firm wealth over time
+x axis = iteration/timestep
+y axis = wealth
+hue = firm ID
+
+Overall 12 plots
+
+
+--store agent net worth in the banks, earning interest
+--make initial wealths of all agents more similar
+--government benefits to agents and firms, so money in that direction
+-- -- redistribute money based on wealth (lower income gets more benefits, richer are taxed)
+-- increase # of agents to 100

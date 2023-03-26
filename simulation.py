@@ -21,20 +21,49 @@ config = {
     "firm_action_space": ['fee_rate'],
     "firm_state_space": ['money'],
     "reward_functions": ["money_firms"],
+    "min_transaction_fee_low": 0.01,
+    "max_transaction_fee_low": 0.03,
+    "min_transaction_fee_medium": 0.07,
+    "max_transaction_fee_medium": 0.12,
+    "min_transaction_fee_high": 0.15,
+    "max_transaction_fee_high": 0.20,
   },
   "regulators": {
     "num_regulators": 1,  # Leave as 1, there is just 1 gov.
     "reg_action_space": ['fee_rate', 'tax_rate'],
     "tax_rate_agents": 0.10,
     "tax_rate_firms": 0.10,
+    "min_tax_rate_agents_low": 0,
+    "max_tax_rate_agents_low": 0,
+    "min_tax_rate_agents_medium": 0.28,
+    "max_tax_rate_agents_medium": 0.40,
+    "min_tax_rate_agents_high": 0.65,
+    "max_tax_rate_agents_high": 0.85,
+    "min_tax_rate_firms_low": 0,
+    "max_tax_rate_firms_low": 0,
+    "min_tax_rate_firms_medium": 0.2,
+    "max_tax_rate_firms_medium": 0.3,
+    "min_tax_rate_firms_high": 0.4,
+    "max_tax_rate_firms_high": 0.45,
+    "merger_threshold_low": 0,
+    "merger_threshold_medium": 0.65,
+    "merger_threshold_high": 0.35,
+    "min_interest_rate_low": 0.01,
+    "max_interest_rate_low": 0.03,
+    "min_interest_rate_medium": 0.07,
+    "max_interest_rate_medium": 0.11,
+    "min_interest_rate_high": 0.15,
+    "max_interest_rate_high": 0.2,
     "reg_state_space": ['wealth_equality', 'money'],
     "reward_functions": ['money_firms_agents', 'equality_agents']
     # Equality could be measured by the standard deviation of agents (smaller is better). Could make this a negative number
   },
   "general": {
-    "save_state_iterations": 1,
+    "save_state_iterations": 10,
     "simulation_run_count": 60,
-    "iterations_in_each_simulation_run": 1000
+    "iterations_in_each_simulation_run": 500,
+    "mode": "centralized",
+    "regulation_mode": "low",
   }
 }
 
@@ -59,7 +88,7 @@ def do_centralized_world_interactions(environment, i):
 
 
 def do_decentralized_world_interactions(environment, i):
-  # Agents decide interest rate and give a cut to Crypto firms 
+  # Agents decide interest rate and give a cut to Crypto firms
   environment.decentralized_lending()
   # Government regulate firms (maybe penalize)
   if i % 52 == 0:
@@ -71,7 +100,6 @@ def do_decentralized_world_interactions(environment, i):
 
   # Agent-agent interaction (betting)
   environment.interact_agents_with_agents()
-  
 
   #environment.d_interact_agentSeeking_with_firm_with_agentLending()
   #environment.d_interact_regulator_with_agentLending()
@@ -101,31 +129,39 @@ def simulate(config, simulation_run_number, is_centralized):
   environment.print_state(simulation_run_number)
   return environment.summary
 
-def cleanOutputFolder(mode):
-  folder_path = "runoff"
-  shutil.rmtree(folder_path)
+
+def cleanOutputFolder(mode, regulation):
+  folder_path = mode + "_" + regulation + "_output"
+  print(folder_path)
+  try:
+    shutil.rmtree(folder_path)
+  except:
+    print("could not delete the folder")
   os.mkdir(folder_path)
 
 
+def run(mode, regulation):
+  # set the mode and regulation in the config object so that it can be used by other classes
+  config["general"]["mode"] = mode
+  config["general"]["regulation_mode"] = regulation
 
-def run(mode):
-  cleanOutputFolder(mode)
+  print(config)
+  #clean up the specific output folder for the mode+regulation
+  cleanOutputFolder(mode, regulation)
   if mode == "centralized":
     is_centralized = True
   else:
     is_centralized = False
 
   summary_of_all_runs = []
-  # run simulate N times with M Iterations in each run
+  # run simulate N times with M Iterations (time steps) in each run
   for i in range(config["general"]["simulation_run_count"]):
 
     summary_data_for_onerun = simulate(config, i, is_centralized)
     summary_of_all_runs.extend(summary_data_for_onerun)
 
-  # print summary of all the runs
-
-  # write summary of all the simulation runs into a csv file
-  filename = mode + "_output/summary.csv"
+  # write summary of all the  runs into a csv file
+  filename = mode + "_" + regulation + "_output/summary.csv"
   list = summary_of_all_runs
   #write the header of the csv file
   with open(filename, 'w', newline='') as f:
@@ -140,5 +176,9 @@ def run(mode):
 
 
 #start the similation
-#run("centralized")
-run("decentralized")
+run("decentralized", "low")
+run("decentralized", "medium")
+run("decentralized", "high")
+run("centralized", "low")
+run("centralized", "medium")
+run("centralized", "high")
